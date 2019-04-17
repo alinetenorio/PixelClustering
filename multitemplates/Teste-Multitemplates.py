@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 
 
@@ -21,14 +21,15 @@ from sklearn.cluster import KMeans
 #pathFormas = "C:\\Users\\Tiago\\Downloads\\imagens\\exp02"
 pathFormas = "exp02"
 
-qtd_classes = 2
+qtd_templates = 2
+#quantidade de grupos por template
 k = 2
 testes = 10
 
 for t in range(testes):
     print("\n---------------Teste ", t," ------------------\n")
     
-    x, y, h, w = Imagem.split(pathFormas, qtd_classes)
+    x, y, h, w = Imagem.split(pathFormas, qtd_templates)
 
     f_train, labels_por_classe, qtd_features, y = PixelClustering.intensity_patches_ntemplates(x, y, k, 'variancia', h, w)
 
