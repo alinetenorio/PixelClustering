@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[21]:
+# In[1]:
 
 
 
@@ -18,15 +18,16 @@ import cv2
 
 #===================================================
 
-def intensity_patches_ntemplates(x_train, y_train, n_cluster,projecao, h=0, w=0):
+#
+def intensity_patches_ntemplates(x, y, n_cluster,projecao, h=0, w=0):
     #extrair vetores de intensidade
-    x_train = np.array(x_train)     
-    x_list = separar_por_classe(x_train, y_train, n_cluster) 
+    x = np.array(x)     
+    x_list = separar_por_classe(x, y, n_cluster) 
     
     print("1========================================")
-    print(y_train)
+    print(y)
     
-    y_train_ant = y_train
+    y_anterior = y
     
     mudanca = 1
     interacao = 0    
@@ -37,41 +38,31 @@ def intensity_patches_ntemplates(x_train, y_train, n_cluster,projecao, h=0, w=0)
         qtd_classes = len(x_list) 
         qtd_features = n_cluster*qtd_classes
     
-        labels_por_classe, qtd_por_classe = clusterizar_por_classe(x_list, n_cluster)
+        temp_por_classe, qtd_por_classe = clusterizar_por_classe(x_list, n_cluster)
         
-        f_train = projetar_ntemplates_editando(x_train, labels_por_classe, qtd_features, n_cluster, projecao)
+        f = projetar_ntemplates_editando(x, temp_por_classe, qtd_features, n_cluster, projecao)
         
         print("ITERACAO "+str(interacao)+"========================================")
         kmeans = KMeans(n_clusters = n_cluster, init = 'k-means++')
-        kmeans.fit(f_train)   
+        kmeans.fit(f)   
                 
-        y_train = kmeans.labels_
+        y = kmeans.labels_
         
         #se o grupo formado nessa iteracao eh igual ao grupo anterior, o algoritmo encerra
-        if np.array_equal(y_train, y_train_ant):
+        if np.array_equal(y, y_anterior):
             mudanca = 0
         
-        y_train_ant = y_train
+        y_anterior = y
         
-        print("Novos grupos:\n",y_train)
-        x_list = separar_por_classe(x_train, y_train, n_cluster)
-        print("qtd_por_classe[0]: ",qtd_por_classe[0])
-        print("qtd_por_classe[1]: ",qtd_por_classe[1])
-        print('len(x_list[0]): ', len(x_list[0]))
-        #print('len(x_list[1]): ', len(x_list[1]))
+        print("Novos grupos:\n",y)
+        x_list = separar_por_classe(x, y, n_cluster)
         
-        print('\n===ftrain===\n', f_train)
+        print('\n===features===\n', f)
         for i in range(qtd_classes):
-            print('escrevendo imagem ')
-            print('path: ', "templates/temp"+str(i)+".png")
-            cv2.imwrite("templates/temp"+str(interacao)+"-"+str(i)+".png",255*np.reshape(labels_por_classe[i],[h,w]))
+            cv2.imwrite("templates/exp02/temp"+str(interacao)+"-"+str(i)+".png",255*np.reshape(labels_por_classe[i],[h,w]))
         
-   
-    
-   # f_train = projetar_ntemplates(x_train, labels_por_classe, qtd_features, qtd_por_classe, qtd_classes, n_cluster, projecao)
-    
-    
-    return f_train, labels_por_classe, qtd_features, y_train
+  
+    return f, labels_por_classe, qtd_features, y
 
 
 #===================================================
@@ -88,12 +79,9 @@ def separar_por_classe(x_train, y_train, n_cluster):
    
     for c in set_y_train:
         ind = np.where(y_train == c)
-        print("---->indices por classe: "+ str(c)+": ", ind)
-       
+    
         for img in range(len(ind)):
             x_train_c.append(x_train[ind[img]])
-    
-    #print(x_train_c)
    
     return x_train_c
 
@@ -102,14 +90,7 @@ def separar_por_classe(x_train, y_train, n_cluster):
 #recebe uma lista com elementos divididos por classe
 #clusteriza e retorna o vetor labels_ de cada cluster-classe
 def clusterizar_por_classe(x_list, n_cluster):
-    print('len(x_list)',len(x_list))
-    print('len(x_list[0])',len(x_list[0]))
-    print('len(x_list[0][0])',len(x_list[0][0]))
-    print('len(x_list[0][1])',len(x_list[0][1]))
-    print('len(x_list[0][2])',len(x_list[0][2]))
-    print('len(x_list[0][3])',len(x_list[0][3]))
-    #print('len(x_list[0][4])',len(x_list[0][4]))
-    print('len(x_list[1])',len(x_list[1]))
+  
     y_por_classe = []
     qtd_por_classe = []
     kmeans = KMeans(n_clusters = n_cluster, init = 'k-means++')
@@ -120,8 +101,6 @@ def clusterizar_por_classe(x_list, n_cluster):
         y_por_classe.append(kmeans.labels_)
         qtd_por_classe.append(len(x_c[0])) 
     
-    print('len(y_por_classe): ',len(y_por_classe))
-    print('len(y_por_classe[0]): ',len(y_por_classe[0]))
     return y_por_classe, qtd_por_classe
 
 
@@ -193,7 +172,6 @@ def projetar_ntemplates_editando(x, labels_por_classe, qtd_features, n_cluster, 
 # projecao
 #   é o tipo de feature a ser extraída.
 def extrair_feat(x, labels, n_cluster, projecao):
-    print("labels: ", labels)
     
     # f é a matriz de respostas com as features extraídas. Cada linha
     #   corresponde as features da imagem da linha equivalente em x.
@@ -246,9 +224,7 @@ def percorrer_cluster(x, indices, projecao):
         variancia_x = variancia_total(x)
         
         feature = variancia/variancia_x
-        print('variancia cluster: ', variancia)
-        print('variancia total: ', variancia_x)
-        print('feature: ', feature)
+      
         return feature
     
 #===========================================================
