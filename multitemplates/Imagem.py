@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[41]:
+# In[21]:
 
 
 import os, glob, random, imageio
 import numpy as np
 import cv2
 import nbimporter
+from PIL import Image
+from resizeimage import resizeimage
 
 #====================================================
 
@@ -54,21 +56,29 @@ def split(path, qtd_classes):
 #     de uma imagem
 # <-h e w
 #     h: altura original da imagem; w: largura original da imagem
-#transforma as imagens em lista de pixels
 def imgs_para_vetor(path):
    
     #extensão do dado
     i = glob.glob(path+"\\*")[0]
     ext = (i[i.index('.') + len('.'):])
- 
+   
+    # Recupera as dimensões da primeira imagem do conjunto e define
+    # como as dimensões padrão. Todas as imagens do conjunto serão
+    # redimensionadas em função de shape.
+    ima = Image.open(i)
+    ima = np.asarray(ima,dtype="int32" )
+    shape = ima.shape
+    
     data = []
     for image_path in glob.glob(path+"\\*."+ext):
-        #opencv não tem suporte para imagens .gif
-        if ext == 'gif':
-            ima = imageio.mimread(image_path)
-        else:
-            #parâmetro 0: lê a imagem como greyscale
-            ima = cv2.imread(image_path,0)
+        ima = Image.open(image_path)
+        # Padroniza as dimensões da imagem de acordo com a tupla shape
+        # ->shape: altura e largura que todas as imagens do dataset devem ter
+        # ->bg_color(rgba): caso a imagem seja redimensionada para valores maiores
+        #    que os originais, é adicionada uma borda de pixels pretos
+        ima = resizeimage.resize_contain(ima, shape, bg_color=(0,0,0,0))
+        # Transforma em greyscale
+        ima = ima.convert("L")
 
         ima = np.asarray(ima,dtype="int32" )
 

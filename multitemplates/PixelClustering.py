@@ -4,17 +4,12 @@
 # In[1]:
 
 
-
-# coding: utf-8
-
-# In[1]:
-
 import numpy as np
 from sklearn.cluster import KMeans
 import math
 import nbimporter
 import matplotlib.pylab as plt
-import cv2
+import cv2,os
 
 #===================================================
 
@@ -41,7 +36,7 @@ import cv2
 #   n_cluster * qtd_classes
 # <-y
 #   vetor de labels após a troca de classes, cada elemento define a classe de uma das imagens de x.
-def intensity_patches_ntemplates(x, y, n_cluster,tipo_feature, h=0, w=0):
+def intensity_patches_ntemplates(x, y, n_cluster,tipo_feature, h=0, w=0, path_template=False):
     #extrair vetores de intensidade
     x = np.array(x)     
     x_list = separar_por_classe(x, y, n_cluster) 
@@ -51,10 +46,10 @@ def intensity_patches_ntemplates(x, y, n_cluster,tipo_feature, h=0, w=0):
     y_anterior = y
     
     mudanca = 1
-    interacao = 0    
+    iteracao = 0    
     while mudanca > 0:
         #mudanca = 0
-        interacao = interacao + 1
+        iteracao = iteracao + 1
         
         qtd_classes = len(x_list) 
         qtd_features = n_cluster*qtd_classes
@@ -63,7 +58,7 @@ def intensity_patches_ntemplates(x, y, n_cluster,tipo_feature, h=0, w=0):
         
         f = projetar_ntemplates_editando(x, temp_por_classe, qtd_features, n_cluster, tipo_feature)
         
-        print("ITERACAO "+str(interacao)+"========================================")
+        print("\nITERACAO "+str(iteracao)+"========================================")
         kmeans = KMeans(n_clusters = n_cluster, init = 'k-means++')
         kmeans.fit(f)   
                 
@@ -77,10 +72,14 @@ def intensity_patches_ntemplates(x, y, n_cluster,tipo_feature, h=0, w=0):
         
         print("Novos grupos:\n",y)
         x_list = separar_por_classe(x, y, n_cluster)
-        
         print('\n===features===\n', f)
-        for i in range(qtd_classes):
-            cv2.imwrite("templates/exp02/temp"+str(interacao)+"-"+str(i)+".png",255*np.reshape(temp_por_classe[i],[h,w]))
+        
+        #se o path for passado como argumento, escrever os templates gerados em cada iteracao
+        if path_template:
+            if not os.path.exists(path_template):
+                os.makedirs(path_template)
+            for i in range(qtd_classes):
+                cv2.imwrite(path_template+"/it"+str(iteracao)+"-temp"+str(i)+".png",255*np.reshape(temp_por_classe[i],[h,w]))
         
   
     return f, temp_por_classe, qtd_features, y
